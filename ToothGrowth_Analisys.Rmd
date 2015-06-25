@@ -1,0 +1,117 @@
+---
+title: "ToothGrowth Data Analisys"
+author: "Oleg Tsarev"
+date: "June 21, 2015"
+output: pdf_document
+---
+## **Overview**
+
+## **Simulations**
+
+
+
+---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+.    | .    | SUPP | VC   | VC   | VC   | VC   | OJ   | OJ   | OJ   | OJ   | all  | all  | all  | all  |
+.    | .    | DOSE | 0.5  | 1    | 2    | all  | 0.5  | 1    | 2    | all  | 0.5  | 1    | 2    | all
+SUPP | DOSE |      |      |      |      |      |      |      |      |      |      |      |      |      |
+VC   | 0.5  |      |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+VC   | 1    |      | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+VC   | 2    |      | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+VC   | all  |      | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+OJ   | 0.5  |      | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+OJ   | 1    |      | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- |
+OJ   | 2    |      | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- |
+OJ   | all  |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- |
+all  | 0.5  |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- |
+all  | 1    |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- |
+all  | 2    |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- |
+all  | all  |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      |
+
+
+
+```{r c01,fig.height=3,fig.width=4}
+rm(list=ls())
+library(ggplot2)
+data(ToothGrowth)
+head(ToothGrowth)
+summary(ToothGrowth)
+
+# === 2 === #
+mtrx_test <- array(list(),c(12,12),dimnames = list(1:12,1:12))
+p.v <- array(numeric(),c(12,12),dimnames = list(1:12,1:12))
+
+k <- 1
+for (i in c("VC ","OJ ","all")){
+    for (j in c("0.5","1  ","2  ","all")){
+        colnames(mtrx_test)[k] <- paste(i,j)
+        rownames(mtrx_test)[k] <- paste(i,j)
+        colnames(p.v)[k] <- paste(i,j)
+        rownames(p.v)[k] <- paste(i,j)
+        k <- k +1
+    }
+}
+
+for (i in 1:nrow(mtrx_test)){
+    for (j in 1:ncol(mtrx_test)){
+        q1_s <- gsub(" ","",substr(rownames(mtrx_test)[i],1,3))
+        q1_d <- gsub(" ","",substr(rownames(mtrx_test)[i],5,nchar(rownames(mtrx_test)[i])))
+        if(q1_s == "all") q1_s <- c("VC","OJ")
+        if(q1_d == "all") q1_d <- c("0.5","1","2")
+        q2_s <- gsub(" ","",substr(colnames(mtrx_test)[j],1,3))
+        q2_d <- gsub(" ","",substr(colnames(mtrx_test)[j],5,nchar(colnames(mtrx_test)[j])))
+        if(q2_s == "all") q2_s <- c("VC","OJ")
+        if(q2_d == "all") q2_d <- c("0.5","1","2")
+        q1 <- ToothGrowth[ToothGrowth$supp %in% q1_s & ToothGrowth$dose %in% q1_d,]
+        q2 <- ToothGrowth[ToothGrowth$supp %in% q2_s & ToothGrowth$dose %in% q2_d,]
+        mtrx_test[i,j][[1]] <- t.test(q1$len,q2$len)
+        p.v[i,j] <- format(mtrx_test[i,j][[1]]$p.value,digits = 2,width = 4)
+    }
+}
+rm(list=ls()[! ls() %in% c("mtrx_test","ToothGrowth","p.v")])
+
+# === 3 === #
+mtrx_test["VC  1  ","OJ  1  "][[1]][["p.value"]]
+mtrx_test[2,6][[1]][["p.value"]]
+mtrx_test["all 2  ","OJ  1  "][[1]][["conf.int"]]
+mtrx_test["VC  0.5","all all"][[1]]$p.value
+p.v
+```
+
+
+
+
+## **a.**
+
+```{r a, fig.width=10}
+
+
+```
+
+## **Sample Mean versus Theoretical Mean** ##
+```{r c02,fig.width=10}
+
+```
+
+## **Distribution**
+```{r c04,fig.width=10}
+
+```
+
+
+
+
+
+
+
+
+
+
+
+---------- | ---- | -- | -- | --- 
+.          | SUPP | VC | OJ | all
+DOSE       |      |    |    |    
+0.5        |      | a. | b. | c. 
+1          |      | d. | e. | f.    
+2          |      | g. | h. | i.     
+all        |      | j. | k. | l.     
+
