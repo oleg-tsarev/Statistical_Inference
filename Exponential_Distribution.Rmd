@@ -1,7 +1,6 @@
 ---
-title: "**EXPONENTIAL DISTRIBUTION**"
+title: '**EXPONENTIAL DISTRIBUTION**'
 author: "Oleg Tsarev"
-date: "June 21, 2015"
 output: pdf_document
 ---
 ## **Overview**
