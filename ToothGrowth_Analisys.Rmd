@@ -1,45 +1,31 @@
 ---
 title: "ToothGrowth Data Analisys"
 author: "Oleg Tsarev"
-date: "June 21, 2015"
 output: pdf_document
 ---
-## **Overview**
+## **OVERVIEW**
+In this report we will investigate the effect of vitamin C on tooth growth in Guinea Pigs
+The response is the length of odontoblasts (teeth) in each of 10 guinea pigs at each of three dose levels of Vitamin C (0.5, 1, and 2 mg) - in our dataset column "dose" with each of two delivery methods - orange juice or ascorbic acid - column "supp". https://stat.ethz.ch/R-manual/R-devel/library/datasets/html/ToothGrowth.html.  
 
-## **Simulations**
-
-
-
----- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-.    | .    | SUPP | VC   | VC   | VC   | VC   | OJ   | OJ   | OJ   | OJ   | all  | all  | all  | all  |
-.    | .    | DOSE | 0.5  | 1    | 2    | all  | 0.5  | 1    | 2    | all  | 0.5  | 1    | 2    | all
-SUPP | DOSE |      |      |      |      |      |      |      |      |      |      |      |      |      |
-VC   | 0.5  |      |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-VC   | 1    |      | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-VC   | 2    |      | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-VC   | all  |      | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-OJ   | 0.5  |      | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
-OJ   | 1    |      | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- |
-OJ   | 2    |      | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- |
-OJ   | all  |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- |
-all  | 0.5  |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- |
-all  | 1    |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- |
-all  | 2    |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- |
-all  | all  |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      |
-
-
-
-```{r c01,fig.height=3,fig.width=4}
-rm(list=ls())
-library(ggplot2)
+## **LOADING THE TEETH GROWTH DATA AND SHORT SUMMARY**
+```{r c00,fig.height=2.5,fig.width=7}
 data(ToothGrowth)
-head(ToothGrowth)
 summary(ToothGrowth)
+str(ToothGrowth)
+library(ggplot2)
+q <- ggplot(data = ToothGrowth, aes(x = factor(dose), y = len))
+q <- q + geom_boxplot() + facet_grid(. ~ supp)
+q + ggtitle('Tooth length distribution') + labs(x = "dose", y = "length")
+```
+  
+So, as you can see above, seems that for dose 0.5 and 1 mg orange juice average teeth length is higher than ascorbid acid (same doses), but for dose 2 mg average teeth lengths are about the same. Let's investigate it.
+  
+## **CONFIDENCE INTERVALS AND HYPOTHESIS TESTS**
+Let's create matrix t
 
-# === 2 === #
+```{r c01,fig.height=3,fig.width=4,echo=FALSE}
 mtrx_test <- array(list(),c(12,12),dimnames = list(1:12,1:12))
 p.v <- array(numeric(),c(12,12),dimnames = list(1:12,1:12))
-
 k <- 1
 for (i in c("VC ","OJ ","all")){
     for (j in c("0.5","1  ","2  ","all")){
@@ -50,7 +36,6 @@ for (i in c("VC ","OJ ","all")){
         k <- k +1
     }
 }
-
 for (i in 1:nrow(mtrx_test)){
     for (j in 1:ncol(mtrx_test)){
         q1_s <- gsub(" ","",substr(rownames(mtrx_test)[i],1,3))
@@ -63,18 +48,19 @@ for (i in 1:nrow(mtrx_test)){
         if(q2_d == "all") q2_d <- c("0.5","1","2")
         q1 <- ToothGrowth[ToothGrowth$supp %in% q1_s & ToothGrowth$dose %in% q1_d,]
         q2 <- ToothGrowth[ToothGrowth$supp %in% q2_s & ToothGrowth$dose %in% q2_d,]
-        mtrx_test[i,j][[1]] <- t.test(q1$len,q2$len)
-        p.v[i,j] <- format(mtrx_test[i,j][[1]]$p.value,digits = 2,width = 4)
+        mtrx_test[i,j][[1]] <- t.test(q1$len,q2$len,paired = F)
+        p.v[i,j] <- sprintf("%3.2e",mtrx_test[i,j][[1]]$p.value)
     }
 }
 rm(list=ls()[! ls() %in% c("mtrx_test","ToothGrowth","p.v")])
+```
 
-# === 3 === #
-mtrx_test["VC  1  ","OJ  1  "][[1]][["p.value"]]
-mtrx_test[2,6][[1]][["p.value"]]
-mtrx_test["all 2  ","OJ  1  "][[1]][["conf.int"]]
-mtrx_test["VC  0.5","all all"][[1]]$p.value
-p.v
+
+```{r c02,fig.height=3,fig.width=4}
+mtrx_test["OJ  all","VC  all"][[1]]
+mtrx_test["OJ  0.5","VC  0.5"][[1]]
+mtrx_test["OJ  1  ","VC  1  "][[1]]
+mtrx_test["OJ  2  ","VC  2  "][[1]]#[["p.value"]]
 ```
 
 
@@ -85,10 +71,11 @@ p.v
 ```{r a, fig.width=10}
 
 
+
 ```
 
 ## **Sample Mean versus Theoretical Mean** ##
-```{r c02,fig.width=10}
+```{r c03,fig.width=10}
 
 ```
 
@@ -115,3 +102,22 @@ DOSE       |      |    |    |
 2          |      | g. | h. | i.     
 all        |      | j. | k. | l.     
 
+
+
+
+---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+.    | .    | SUPP | VC   | VC   | VC   | VC   | OJ   | OJ   | OJ   | OJ   | all  | all  | all  | all  |
+.    | .    | DOSE | 0.5  | 1    | 2    | all  | 0.5  | 1    | 2    | all  | 0.5  | 1    | 2    | all
+SUPP | DOSE |      |      |      |      |      |      |      |      |      |      |      |      |      |
+VC   | 0.5  |      |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+VC   | 1    |      | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+VC   | 2    |      | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+VC   | all  |      | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+OJ   | 0.5  |      | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- |
+OJ   | 1    |      | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- | ---- |
+OJ   | 2    |      | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- | ---- |
+OJ   | all  |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- | ---- |
+all  | 0.5  |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- | ---- |
+all  | 1    |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- | ---- |
+all  | 2    |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      | ---- |
+all  | all  |      | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- | ---- |      |
