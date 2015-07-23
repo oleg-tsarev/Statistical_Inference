@@ -1,10 +1,11 @@
 ---
 title: "ToothGrowth Data Analisys"
 author: "Oleg Tsarev"
+documentclass: article
 output:
+  html_document: default
   pdf_document:
     highlight: haddock
-documentclass: article
 classoption: a4paper
 ---
 ## **OVERVIEW**
@@ -67,8 +68,6 @@ rm(list=ls()[! ls() %in% c("mtrx_test","ToothGrowth","p.v")])
   
 ####Tooth growth comparison by supp####
 ```{r c021}
-library(knitr)
-opts_chunk$set(size = 'large')
 mtrx_test["OJ  all","VC  all"][[1]] # t-test (not a paired) with all doses of supp
 ```
 The null hypothesis here is that the difference between the mean of tooth length with orange juice (all doses) and the mean of tooth length with ascorbic acid (all doses) is zero. As you can see above p-value > 5%, therefore we fail to reject the null hypothesis. We can say that with 95% probability we sure that the difference between mentioned means (20.66 and 16.96) is between -0.17 and 7.57. There are a negative values, so we can not say that orange juice **always** is more effective in terms of tooth growth than ascorbic acid.
